@@ -1,11 +1,23 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal, Search } from "lucide-react"
 import { IconButton } from "./IconButton"
+import dayjs from 'dayjs'
+import relativeTime from "dayjs/plugin/relativeTime"
 import { Table } from "./table/Table"
 import { TableHeader } from "./table/TableHeader"
 import { TableCell } from "./table/TableCell"
 import { TableRow } from "./table/TableRow"
+import { ChangeEvent, useState } from "react"
+import { attendees } from "../data/attendees"
+
+dayjs.extend(relativeTime)
 
 export function AttendeeList() {
+  const [search, setSearch] = useState('')
+
+  function onSearchInputChange(event: ChangeEvent<HTMLInputElement>) {
+    setSearch(event.target.value)
+  }
+
   return(
     <div className="flex flex-col gap-4">
       <div className="flex gap-3 items-center">
@@ -14,7 +26,7 @@ export function AttendeeList() {
         </h1>
         <div className="px-3 w-72 py-1.5 border border-white/10 rounded-lg flex items-center gap-3">
           <Search className="size-4 text-emerald-300" />
-          <input className="bg-transparent flex-1 outline-none border-0 p-0 text-sm focus:ring-0" placeholder="Search..." />
+          <input onChange={onSearchInputChange} className="bg-transparent flex-1 outline-none border-0 p-0 text-sm focus:ring-0" placeholder="Search..." />
         </div>
       </div>
 
@@ -33,21 +45,21 @@ export function AttendeeList() {
         </thead>
         <tbody>
           {
-            Array.from({ length: 8 }).map((_, i) => {
+            attendees.map((attendee) => {
               return (
-                <TableRow key={i}>
+                <TableRow key={attendee.id}>
                   <TableCell>
                     <input type="checkbox" className="size-4 bg-black/20 rounded-md border border-white/10 accent-orange-400" />
                   </TableCell>
-                  <TableCell>4587896556</TableCell>
+                  <TableCell>{ attendee.id }</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-white">Celio Junior</span>
-                      <span>cl.juniorr@gmail.com</span>
+                      <span className="font-semibold text-white">{attendee.name}</span>
+                      <span>{attendee.email}</span>
                     </div>
                   </TableCell>
-                  <TableCell>7 days ago</TableCell>
-                  <TableCell>3 days ago</TableCell>
+                  <TableCell>{dayjs().to(attendee.createdAt)}</TableCell>
+                  <TableCell>{dayjs().to(attendee.checkedInAt)}</TableCell>
                   <TableCell>
                     <IconButton transparent={true}>
                       <MoreHorizontal className="size-4" />
