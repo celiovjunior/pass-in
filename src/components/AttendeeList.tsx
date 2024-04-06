@@ -6,20 +6,38 @@ import { Table } from "./table/Table"
 import { TableHeader } from "./table/TableHeader"
 import { TableCell } from "./table/TableCell"
 import { TableRow } from "./table/TableRow"
-import { ChangeEvent, useState } from "react"
-import { attendees } from "../data/attendees"
+import { useEffect, useState } from "react"
 
 dayjs.extend(relativeTime)
 
+interface Attendee {
+  id: string
+  name: string
+  email: string
+  createdAt: string
+  checkedInAt: string | null
+}
+
 export function AttendeeList() {
-  const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
+  // const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
 
-  const totalPages = Math.ceil(attendees.length / 10)
+  const totalPages = Math.ceil(total / 10)
 
-  function onSearchInputChange(event: ChangeEvent<HTMLInputElement>) {
-    setSearch(event.target.value)
-  }
+  useEffect(() => {
+    fetch(`http://localhost:3333/events/9e9bd979-9d10-4915-b339-3786b1634f33/attendees?pageIndex=${page - 1}`)
+      .then(response => response.json())
+      .then(data => {
+        setAttendees(data.attendees);
+        setTotal(data.total);
+      })
+  }, [page])
+
+  // function onSearchInputChange(event: ChangeEvent<HTMLInputElement>) {
+  //   setSearch(event.target.value)
+  // }
 
   function goToNextPage() {
     setPage(page + 1)
@@ -45,7 +63,7 @@ export function AttendeeList() {
         </h1>
         <div className="px-3 w-72 py-1.5 border border-white/10 rounded-lg flex items-center gap-3">
           <Search className="size-4 text-emerald-300" />
-          <input onChange={onSearchInputChange} className="bg-transparent flex-1 outline-none border-0 p-0 text-sm focus:ring-0" placeholder="Search..." />
+          <input className="bg-transparent flex-1 outline-none border-0 p-0 text-sm focus:ring-0" placeholder="Search..." />
         </div>
       </div>
 
@@ -63,8 +81,7 @@ export function AttendeeList() {
           </tr>
         </thead>
         <tbody>
-          {
-            attendees.slice((page - 1) * 10, page * 10).map((attendee) => {
+          {attendees.map((attendee) => {
               return (
                 <TableRow key={attendee.id}>
                   <TableCell>
@@ -78,7 +95,7 @@ export function AttendeeList() {
                     </div>
                   </TableCell>
                   <TableCell>{dayjs().to(attendee.createdAt)}</TableCell>
-                  <TableCell>{dayjs().to(attendee.checkedInAt)}</TableCell>
+                  <TableCell>{attendee.checkedInAt === null ? <span className="text-zinc-400">Not checked in</span> : dayjs().to(attendee.checkedInAt)}</TableCell>
                   <TableCell>
                     <IconButton transparent={true}>
                       <MoreHorizontal className="size-4" />
@@ -86,13 +103,12 @@ export function AttendeeList() {
                   </TableCell>
               </TableRow>
               )
-            })
-          }
+            })}
         </tbody>
         <tfoot>
           <tr>
             <TableCell colSpan={3}>
-              Show 10 of {attendees.length} items
+              Show 10 of {total} items
             </TableCell>
             <TableCell className="py-3 px-4 text-sm text-zinc-300 text-right" colSpan={3}>
               {/* pagination */}
