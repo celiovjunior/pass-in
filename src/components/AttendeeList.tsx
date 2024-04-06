@@ -21,7 +21,14 @@ interface Attendee {
 // URL State
 
 export function AttendeeList() {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => {
+    const url = new URL(window.location.toString());
+    if (url.searchParams.has('search')) {
+      return url.searchParams.get('search') ?? ''
+    }
+
+    return ''
+  });
   const [page, setPage] = useState(() => {
     const url = new URL(window.location.toString());
     if (url.searchParams.has('page')) {
@@ -58,8 +65,15 @@ export function AttendeeList() {
     setPage(page)
   }
 
+  function setCurrentSearch(search: string) {
+    const url = new URL(window.location.toString());
+    url.searchParams.set('search', search)
+    window.history.pushState({}, "", url)
+    setSearch(search)
+  }
+
   function onSearchInputChange(event: ChangeEvent<HTMLInputElement>) {
-    setSearch(event.target.value)
+    setCurrentSearch(event.target.value)
     setCurrentPage(1)
   }
 
@@ -87,7 +101,11 @@ export function AttendeeList() {
         </h1>
         <div className="px-3 w-72 py-1.5 border border-white/10 rounded-lg flex items-center gap-3">
           <Search className="size-4 text-emerald-300" />
-          <input onChange={onSearchInputChange} className="bg-transparent flex-1 outline-none border-0 p-0 text-sm focus:ring-0" placeholder="Search..." />
+          <input 
+            value={search} 
+            onChange={onSearchInputChange} 
+            className="bg-transparent flex-1 outline-none border-0 p-0 text-sm focus:ring-0" 
+            placeholder="Search..." />
         </div>
       </div>
 
@@ -157,7 +175,6 @@ export function AttendeeList() {
           </tr>
         </tfoot>
       </Table>
-
     </div>
   )
 }
